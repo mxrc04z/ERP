@@ -1,0 +1,24 @@
+{
+  "name": "@erp/web-mobile",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "expo start --web",
+    "build": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "test": "echo No frontend tests configured yet"
+  },
+  "dependencies": {
+    "@erp/shared-types": "*",
+    "@react-native-community/netinfo": "^11.4.1",
+    "expo": "^54.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-native": "^0.81.0",
+    "react-native-web": "^0.20.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "typescript": "^5.9.2"
+  }
+}

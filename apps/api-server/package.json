@@ -1,0 +1,19 @@
+{
+  "name": "@erp/api-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js",
+    "lint": "node --check server.js && node --check src/app.js && node --check src/models/Product.js && node --check src/models/SalesOrder.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "mongoose": "^8.18.0",
+    "pino-http": "^10.5.0"
+  }
+}
