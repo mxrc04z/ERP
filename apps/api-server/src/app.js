@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import pinoHttp from 'pino-http';
+import { registerCoreModules } from './modules/index.js';
 
 const tenantHeader = 'x-tenant-id';
 
@@ -30,6 +31,8 @@ export const createApp = () => {
   app.get('/health', (request, response) => {
     response.json({ data: { status: 'ok' }, meta: {}, traceId: request.id });
   });
+
+  registerCoreModules(app);
 
   app.use((error, request, response, next) => {
     request.log.error(error);
