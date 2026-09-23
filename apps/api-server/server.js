@@ -1,17 +1,13 @@
 import 'dotenv/config';
 import mongoose from 'mongoose';
 import { createApp } from './src/app.js';
+import { connectDatabase } from './src/database/connection.js';
 
 const port = Number(process.env.PORT ?? 4000);
-const mongoUri = process.env.MONGODB_URI;
-
-if (!mongoUri) {
-  throw new Error('MONGODB_URI is required to start the API server.');
-}
 
 const app = createApp();
 
-await mongoose.connect(mongoUri);
+await connectDatabase();
 const server = app.listen(port, () => {
   console.log(`ERP API listening on port ${port}`);
 });
