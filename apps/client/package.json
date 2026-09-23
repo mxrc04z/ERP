@@ -1,0 +1,23 @@
+{
+  "name": "@erp/client",
+  "private": true,
+  "version": "0.1.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "expo start",
+    "build": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "test": "echo No client tests configured yet"
+  },
+  "dependencies": {
+    "@erp/api-client": "*",
+    "@erp/shared-types": "*",
+    "expo": "^54.0.0",
+    "react": "^19.1.0",
+    "react-native": "^0.81.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "typescript": "^5.9.2"
+  }
+}

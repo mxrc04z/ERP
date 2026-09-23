@@ -1,0 +1,13 @@
+{
+  "name": "@erp/worker",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "worker.js",
+  "scripts": {
+    "dev": "node --watch worker.js",
+    "start": "node worker.js",
+    "lint": "node --check worker.js && node --check src/eventBus.js && node --check src/handlers.js",
+    "test": "node --test"
+  }
+}
