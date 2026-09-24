@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ERP Client",
-    "slug": "erp-client",
+    "name": "ERP Platform",
+    "slug": "erp-platform",
     "version": "0.1.0",
     "orientation": "default",
     "userInterfaceStyle": "light"
