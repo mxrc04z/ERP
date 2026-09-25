@@ -6,6 +6,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View
 } from 'react-native';
 
@@ -28,7 +29,13 @@ type ActivityProps = {
   tone: ActivityTone;
 };
 
-const NAVIGATION_ITEMS = ['Resumen', 'Ventas', 'Inventario', 'Clientes', 'Finanzas'];
+const NAVIGATION_ITEMS = [
+  { label: 'Resumen', icon: '⌂' },
+  { label: 'Ventas', icon: '↗' },
+  { label: 'Inventario', icon: '▦' },
+  { label: 'Clientes', icon: '◎' },
+  { label: 'Finanzas', icon: '$' }
+];
 
 const QUICK_ACTIONS = [
   'Crear cotización',
@@ -50,9 +57,12 @@ const todayLabel = (): string =>
     .toUpperCase();
 
 export default function App() {
+  const { width } = useWindowDimensions();
+  const isCompact = width < 760;
   const [commandOpen, setCommandOpen] = useState(false);
   const [drawer, setDrawer] = useState<Drawer>(null);
   const [query, setQuery] = useState('');
+  const [activeSection, setActiveSection] = useState('Resumen');
 
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
@@ -77,25 +87,24 @@ export default function App() {
   }, []);
 
   const visibleItems = NAVIGATION_ITEMS.filter((item) =>
-    item.toLowerCase().includes(query.toLowerCase())
+    item.label.toLowerCase().includes(query.toLowerCase())
   );
 
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.topbar}>
+      <View style={[styles.topbar, isCompact && styles.compactTopbar]}>
         <View>
-          <Text style={styles.eyebrow}>ERP PLATFORM</Text>
-          <Text style={styles.title}>Centro de operaciones</Text>
+          <Text style={styles.eyebrow}>ERP / EMPRESA DEMO</Text>
+          <Text style={styles.title}>{isCompact ? 'Resumen' : 'Centro de operaciones'}</Text>
         </View>
         <View style={styles.topbarActions}>
           <TouchableOpacity
-            style={styles.commandButton}
+            style={[styles.commandButton, isCompact && styles.compactCommandButton]}
             onPress={() => setCommandOpen(true)}
             accessibilityLabel="Abrir paleta de comandos"
           >
-            <Text style={styles.commandButtonText}>
-              Buscar <Text style={styles.shortcut}>Ctrl K</Text>
-            </Text>
+            <Text style={styles.commandButtonText}>{isCompact ? '⌕' : 'Buscar'}</Text>
+            {!isCompact && <Text style={styles.shortcut}>Ctrl K</Text>}
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setDrawer('notifications')}
@@ -115,42 +124,44 @@ export default function App() {
       </View>
 
       <View style={styles.body}>
-        <View style={styles.sidebar}>
+        {!isCompact && <View style={styles.sidebar}>
           <Text style={styles.sidebarLabel}>Workspace</Text>
-          {NAVIGATION_ITEMS.map((item, index) => (
+          {NAVIGATION_ITEMS.map((item) => (
             <TouchableOpacity
-              key={item}
-              style={[styles.navItem, index === 0 && styles.activeNavItem]}
+              key={item.label}
+              onPress={() => setActiveSection(item.label)}
+              style={[styles.navItem, activeSection === item.label && styles.activeNavItem]}
             >
-              <Text style={[styles.navText, index === 0 && styles.activeNavText]}>{item}</Text>
+              <Text style={styles.navIcon}>{item.icon}</Text>
+              <Text style={[styles.navText, activeSection === item.label && styles.activeNavText]}>{item.label}</Text>
             </TouchableOpacity>
           ))}
           <View style={styles.sidebarFooter}>
             <Text style={styles.tenantText}>Empresa Demo</Text>
             <Text style={styles.branchText}>Sucursal Centro</Text>
           </View>
-        </View>
+        </View>}
 
-        <ScrollView contentContainerStyle={styles.content}>
-          <View style={styles.welcomeRow}>
+        <ScrollView contentContainerStyle={[styles.content, isCompact && styles.compactContent]}>
+          <View style={[styles.welcomeRow, isCompact && styles.compactWelcomeRow]}>
             <View>
               <Text style={styles.pageKicker}>{todayLabel()}</Text>
-              <Text style={styles.heading}>Buenos días, Laura.</Text>
+              <Text style={[styles.heading, isCompact && styles.compactHeading]}>Buenos días, Laura.</Text>
               <Text style={styles.subheading}>Aquí tienes el pulso de tu operación.</Text>
             </View>
-            <TouchableOpacity style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>+ Nueva operación</Text>
+            <TouchableOpacity style={styles.primaryButton} onPress={() => setCommandOpen(true)}>
+              <Text style={styles.primaryButtonText}>＋ Nueva operación</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.metricGrid}>
+          <ScrollView horizontal={isCompact} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.metricGrid}>
             <Metric label="Ventas del mes" value="$284,920" delta="+12.8%" positive />
             <Metric label="Pedidos abiertos" value="128" delta="8 requieren atención" />
             <Metric label="Stock crítico" value="17" delta="3 más que ayer" warning />
             <Metric label="Por cobrar" value="$92,410" delta="Vence esta semana" />
-          </View>
+          </ScrollView>
 
-          <View style={styles.panelRow}>
+          <View style={[styles.panelRow, isCompact && styles.compactPanelRow]}>
             <View style={[styles.panel, styles.largePanel]}>
               <Text style={styles.panelTitle}>Actividad reciente</Text>
               <Activity
@@ -185,6 +196,15 @@ export default function App() {
         </ScrollView>
       </View>
 
+      {isCompact && <View style={styles.bottomNav}>
+        {NAVIGATION_ITEMS.slice(0, 4).map((item) => (
+          <TouchableOpacity key={item.label} style={styles.bottomNavItem} onPress={() => setActiveSection(item.label)}>
+            <Text style={[styles.bottomNavIcon, activeSection === item.label && styles.bottomNavActive]}>{item.icon}</Text>
+            <Text style={[styles.bottomNavText, activeSection === item.label && styles.bottomNavActive]}>{item.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>}
+
       {commandOpen && (
         <View style={styles.modalBackdrop}>
           <View style={styles.commandModal}>
@@ -199,11 +219,14 @@ export default function App() {
             />
             {visibleItems.map((item) => (
               <TouchableOpacity
-                key={item}
+                key={item.label}
                 style={styles.commandItem}
-                onPress={() => setCommandOpen(false)}
+                onPress={() => {
+                  setActiveSection(item.label);
+                  setCommandOpen(false);
+                }}
               >
-                <Text>{item}</Text>
+                <Text>{item.label}</Text>
                 <Text style={styles.commandHint}>Enter</Text>
               </TouchableOpacity>
             ))}
@@ -272,15 +295,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center'
   },
+  compactTopbar: { minHeight: 72, paddingHorizontal: 18, paddingVertical: 14 },
   eyebrow: { color: '#9BC5A8', fontSize: 11, letterSpacing: 1.5, fontWeight: '700' },
   title: { color: '#F5F3EB', fontSize: 21, fontWeight: '700', marginTop: 4 },
-  topbarActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  topbarActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   commandButton: {
     backgroundColor: '#31584F',
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 5
   },
+  compactCommandButton: { width: 38, height: 38, padding: 0, alignItems: 'center', justifyContent: 'center' },
   commandButtonText: { color: '#ECF2EB' },
   shortcut: { color: '#A9C6B0', fontSize: 11 },
   iconButton: { padding: 10 },
@@ -302,7 +327,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 18
   },
-  navItem: { paddingVertical: 11, paddingHorizontal: 12, borderRadius: 4, marginBottom: 4 },
+  navItem: { paddingVertical: 11, paddingHorizontal: 12, borderRadius: 4, marginBottom: 4, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  navIcon: { color: '#718078', fontSize: 18, width: 18, textAlign: 'center' },
   activeNavItem: { backgroundColor: '#D0E1D3' },
   navText: { color: '#51635B', fontSize: 14 },
   activeNavText: { color: '#173C35', fontWeight: '700' },
@@ -314,15 +340,18 @@ const styles = StyleSheet.create({
   },
   tenantText: { color: '#29483F', fontWeight: '700', fontSize: 12 },
   branchText: { color: '#718078', fontSize: 11, marginTop: 4 },
-  content: { padding: 32, maxWidth: 1300, width: '100%' },
+  content: { padding: 32, maxWidth: 1300, width: '100%', paddingBottom: 48 },
+  compactContent: { padding: 18, paddingBottom: 92 },
   welcomeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     marginBottom: 28
   },
+  compactWelcomeRow: { alignItems: 'flex-start', gap: 16 },
   pageKicker: { color: '#7C8980', fontSize: 11, letterSpacing: 1.2, fontWeight: '700' },
   heading: { color: '#173C35', fontSize: 32, fontWeight: '700', marginTop: 7 },
+  compactHeading: { fontSize: 27 },
   subheading: { color: '#718078', fontSize: 15, marginTop: 5 },
   primaryButton: {
     backgroundColor: '#C77745',
@@ -334,6 +363,7 @@ const styles = StyleSheet.create({
   metricGrid: { flexDirection: 'row', gap: 14, marginBottom: 18 },
   metric: {
     flex: 1,
+    minWidth: 170,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#DEE5DC',
@@ -346,6 +376,7 @@ const styles = StyleSheet.create({
   positive: { color: '#4A8B6A' },
   warning: { color: '#C77745' },
   panelRow: { flexDirection: 'row', gap: 18 },
+  compactPanelRow: { flexDirection: 'column' },
   panel: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -427,5 +458,10 @@ const styles = StyleSheet.create({
     shadowRadius: 12
   },
   drawerTitle: { color: '#173C35', fontSize: 21, fontWeight: '700', marginTop: 28 },
-  drawerText: { color: '#718078', marginTop: 14 }
+  drawerText: { color: '#718078', marginTop: 14 },
+  bottomNav: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 72, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#DDE3DE', flexDirection: 'row', justifyContent: 'space-around', paddingTop: 9 },
+  bottomNavItem: { alignItems: 'center', flex: 1 },
+  bottomNavIcon: { color: '#87928B', fontSize: 20, height: 25 },
+  bottomNavText: { color: '#87928B', fontSize: 10, marginTop: 2 },
+  bottomNavActive: { color: '#2F6B4F', fontWeight: '700' }
 });
