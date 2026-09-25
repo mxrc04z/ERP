@@ -1,23 +1,15 @@
 import { Router } from 'express';
-import { User } from './model.js';
+import { createUserController, listUsersController } from './presentation/controller.js';
+import { createUserService, listUsersService } from './application/service.js';
+import { createUserRepository } from './infrastructure/repository.js';
+import { requirePermission } from '../../middleware/authorization.js';
+import { PERMISSIONS } from '../../middleware/permissions.js';
 
 export const usersRouter = Router();
 
-usersRouter.get('/', async (request, response, next) => {
-  try {
-    const users = await User.find({ tenantId: request.tenantId }).sort({ displayName: 1 }).lean();
-    return response.json({ data: users, meta: {}, traceId: request.id });
-  } catch (error) {
-    return next(error);
-  }
-});
+const repository = createUserRepository();
+const listUsers = listUsersService({ repository });
+const createUser = createUserService({ repository });
 
-usersRouter.post('/', async (request, response, next) => {
-  try {
-    const actor = request.body.createdBy ?? 'system';
-    const user = await User.create({ ...request.body, tenantId: request.tenantId, createdBy: actor, updatedBy: actor });
-    return response.status(201).json({ data: user, meta: {}, traceId: request.id });
-  } catch (error) {
-    return next(error);
-  }
-});
+usersRouter.get('/', requirePermission(PERMISSIONS.USERS_READ), listUsersController({ listUsers }));
+usersRouter.post('/', requirePermission(PERMISSIONS.USERS_WRITE), createUserController({ createUser }));

@@ -1,0 +1,20 @@
+export const PERMISSIONS = Object.freeze({
+  USERS_READ: 'users:read',
+  USERS_WRITE: 'users:write',
+  ROLES_READ: 'iam:read',
+  ROLES_WRITE: 'iam:write',
+  IDENTITY_READ: 'identity:read',
+  IDENTITY_WRITE: 'identity:write',
+  AUDIT_READ: 'audit:read',
+  AUDIT_WRITE: 'audit:write',
+  BRANCHES_READ: 'branches:read',
+  BRANCHES_WRITE: 'branches:write',
+  COMPANIES_READ: 'companies:read',
+  COMPANIES_WRITE: 'companies:write',
+  PRODUCTS_READ: 'products:read',
+  PRODUCTS_WRITE: 'products:write',
+  SALES_ORDERS_READ: 'sales-orders:read',
+  SALES_ORDERS_WRITE: 'sales-orders:write',
+  TENANT_READ: 'tenant:read',
+  TENANT_WRITE: 'tenant:write'
+});

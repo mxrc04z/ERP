@@ -1,22 +1,15 @@
 import { Router } from 'express';
-import { Identity } from './model.js';
+import { createIdentityController, listIdentitiesController } from './presentation/controller.js';
+import { createIdentityService, listIdentitiesService } from './application/service.js';
+import { createIdentityRepository } from './infrastructure/repository.js';
+import { requirePermission } from '../../middleware/authorization.js';
+import { PERMISSIONS } from '../../middleware/permissions.js';
 
 export const identityRouter = Router();
 
-identityRouter.get('/:userId', async (request, response, next) => {
-  try {
-    const identities = await Identity.find({ tenantId: request.tenantId, userId: request.params.userId }).lean();
-    return response.json({ data: identities, meta: {}, traceId: request.id });
-  } catch (error) {
-    return next(error);
-  }
-});
+const repository = createIdentityRepository();
+const listIdentities = listIdentitiesService({ repository });
+const createIdentity = createIdentityService({ repository });
 
-identityRouter.post('/', async (request, response, next) => {
-  try {
-    const identity = await Identity.create({ ...request.body, tenantId: request.tenantId });
-    return response.status(201).json({ data: identity, meta: {}, traceId: request.id });
-  } catch (error) {
-    return next(error);
-  }
-});
+identityRouter.get('/:userId', requirePermission(PERMISSIONS.IDENTITY_READ), listIdentitiesController({ listIdentities }));
+identityRouter.post('/', requirePermission(PERMISSIONS.IDENTITY_WRITE), createIdentityController({ createIdentity }));

@@ -1,22 +1,15 @@
 import { Router } from 'express';
-import { AuditEvent } from './model.js';
+import { createAuditController, listAuditController } from './presentation/controller.js';
+import { createAuditService, listAuditService } from './application/service.js';
+import { createAuditRepository } from './infrastructure/repository.js';
+import { requirePermission } from '../../middleware/authorization.js';
+import { PERMISSIONS } from '../../middleware/permissions.js';
 
 export const auditRouter = Router();
 
-auditRouter.get('/', async (request, response, next) => {
-  try {
-    const events = await AuditEvent.find({ tenantId: request.tenantId }).sort({ createdAt: -1 }).limit(100).lean();
-    return response.json({ data: events, meta: {}, traceId: request.id });
-  } catch (error) {
-    return next(error);
-  }
-});
+const repository = createAuditRepository();
+const listAudit = listAuditService({ repository });
+const createAudit = createAuditService({ repository });
 
-auditRouter.post('/', async (request, response, next) => {
-  try {
-    const event = await AuditEvent.create({ ...request.body, tenantId: request.tenantId });
-    return response.status(201).json({ data: event, meta: {}, traceId: request.id });
-  } catch (error) {
-    return next(error);
-  }
-});
+auditRouter.get('/', requirePermission(PERMISSIONS.AUDIT_READ), listAuditController({ listAudit }));
+auditRouter.post('/', requirePermission(PERMISSIONS.AUDIT_WRITE), createAuditController({ createAudit }));

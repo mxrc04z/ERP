@@ -1,0 +1,1 @@
+export { AuditEvent } from '../model.js';

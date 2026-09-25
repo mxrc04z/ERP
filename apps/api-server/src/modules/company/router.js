@@ -1,23 +1,15 @@
 import { Router } from 'express';
-import { Company } from './model.js';
+import { createCompanyController, listCompaniesController } from './presentation/controller.js';
+import { createCompanyService, listCompaniesService } from './application/service.js';
+import { createCompanyRepository } from './infrastructure/repository.js';
+import { requirePermission } from '../../middleware/authorization.js';
+import { PERMISSIONS } from '../../middleware/permissions.js';
 
 export const companyRouter = Router();
 
-companyRouter.get('/', async (request, response, next) => {
-  try {
-    const companies = await Company.find({ tenantId: request.tenantId }).sort({ name: 1 }).lean();
-    return response.json({ data: companies, meta: {}, traceId: request.id });
-  } catch (error) {
-    return next(error);
-  }
-});
+const repository = createCompanyRepository();
+const listCompanies = listCompaniesService({ repository });
+const createCompany = createCompanyService({ repository });
 
-companyRouter.post('/', async (request, response, next) => {
-  try {
-    const actor = request.body.createdBy ?? 'system';
-    const company = await Company.create({ ...request.body, tenantId: request.tenantId, createdBy: actor, updatedBy: actor });
-    return response.status(201).json({ data: company, meta: {}, traceId: request.id });
-  } catch (error) {
-    return next(error);
-  }
-});
+companyRouter.get('/', requirePermission(PERMISSIONS.COMPANIES_READ), listCompaniesController({ listCompanies }));
+companyRouter.post('/', requirePermission(PERMISSIONS.COMPANIES_WRITE), createCompanyController({ createCompany }));

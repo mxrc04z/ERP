@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import pinoHttp from 'pino-http';
 import { registerCoreModules } from './modules/index.js';
+import { attachAuthContext, enforceTenantConsistency } from './middleware/auth.js';
 
 const tenantHeader = 'x-tenant-id';
 
@@ -26,7 +27,9 @@ export const createApp = () => {
   app.use(cors());
   app.use(express.json({ limit: '1mb' }));
   app.use(pinoHttp());
+  app.use(attachAuthContext);
   app.use(tenantContext);
+  app.use(enforceTenantConsistency);
 
   app.get('/health', (request, response) => {
     response.json({ data: { status: 'ok' }, meta: {}, traceId: request.id });

@@ -1,22 +1,15 @@
 import { Router } from 'express';
-import { Role } from './model.js';
+import { createRoleController, listRolesController } from './presentation/controller.js';
+import { createRoleService, listRolesService } from './application/service.js';
+import { createRoleRepository } from './infrastructure/repository.js';
+import { requirePermission } from '../../middleware/authorization.js';
+import { PERMISSIONS } from '../../middleware/permissions.js';
 
 export const iamRouter = Router();
 
-iamRouter.get('/roles', async (request, response, next) => {
-  try {
-    const roles = await Role.find({ tenantId: request.tenantId }).sort({ name: 1 }).lean();
-    return response.json({ data: roles, meta: {}, traceId: request.id });
-  } catch (error) {
-    return next(error);
-  }
-});
+const repository = createRoleRepository();
+const listRoles = listRolesService({ repository });
+const createRole = createRoleService({ repository });
 
-iamRouter.post('/roles', async (request, response, next) => {
-  try {
-    const role = await Role.create({ ...request.body, tenantId: request.tenantId });
-    return response.status(201).json({ data: role, meta: {}, traceId: request.id });
-  } catch (error) {
-    return next(error);
-  }
-});
+iamRouter.get('/roles', requirePermission(PERMISSIONS.ROLES_READ), listRolesController({ listRoles }));
+iamRouter.post('/roles', requirePermission(PERMISSIONS.ROLES_WRITE), createRoleController({ createRole }));
